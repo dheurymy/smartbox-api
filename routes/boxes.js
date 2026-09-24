@@ -108,6 +108,23 @@ router.put('/:boxId', async (req, res) => {
   }
 });
 
+// DELETE /api/boxes/:boxId/baseline - "zera" o boxe de novo: apaga a
+// calibração atual, então a PRÓXIMA leitura recebida vira o novo zero de
+// referência. Útil se a primeira leitura não foi feita com o box vazio de
+// verdade, ou depois de remontar/trocar um sensor fisicamente.
+router.delete('/:boxId/baseline', async (req, res) => {
+  try {
+    const db = getDB();
+    const resultado = await db
+      .collection('boxes')
+      .updateOne({ boxId: req.params.boxId }, { $unset: { baseline: '' } });
+    if (resultado.matchedCount === 0) return res.status(404).json({ erro: 'Boxe não encontrado' });
+    res.json({ mensagem: 'Calibração removida — a próxima leitura recebida vira o novo zero.' });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
 // DELETE /api/boxes/:boxId - remove um boxe (não apaga o histórico de leituras já gravado)
 router.delete('/:boxId', async (req, res) => {
   try {
