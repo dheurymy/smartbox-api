@@ -2,13 +2,13 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const API_URL = process.env.API_URL || 'http://localhost:3000';
-const INTERVALO_MS = 2_000;
+const INTERVALO_MS = 5_000;
 
 // Só box-01 e box-02 continuam "vivos" (atualização a cada ciclo) — os demais
 // boxes fake (box-03 a box-08) ficam parados de propósito, cada um congelado
 // numa leitura que representa um tipo diferente de alerta (ver ajustes feitos
 // direto na API), pra Central de Alertas mostrar a variedade de estados sem
-// o simulador ficar sobrescrevendo esses valores a cada 2s.
+// o simulador ficar sobrescrevendo esses valores a cada 5s.
 const BOX_IDS = ['box-01', 'box-02'];
 
 async function buscarBox(boxId) {
