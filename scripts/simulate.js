@@ -42,13 +42,21 @@ async function enviarLeitura(boxId, matriz) {
 
 async function cicloDeSimulacao() {
   for (const boxId of BOX_IDS) {
-    const box = await buscarBox(boxId);
-    if (!box) {
-      console.warn(`Boxe ${boxId} não encontrado — rode "npm run seed-boxes" primeiro.`);
-      continue;
+    // Cada box é isolado num try/catch: uma falha de rede pontual (timeout,
+    // DNS, API fora do ar por um instante) só pula aquele box neste ciclo —
+    // sem isso, um erro de fetch não tratado derrubava o processo inteiro
+    // (setInterval não continua depois de uma exceção não capturada).
+    try {
+      const box = await buscarBox(boxId);
+      if (!box) {
+        console.warn(`Boxe ${boxId} não encontrado — rode "npm run seed-boxes" primeiro.`);
+        continue;
+      }
+      const matriz = gerarMatriz(box);
+      await enviarLeitura(boxId, matriz);
+    } catch (err) {
+      console.error(`Falha ao simular ${boxId}, pulando este ciclo:`, err.message);
     }
-    const matriz = gerarMatriz(box);
-    await enviarLeitura(boxId, matriz);
   }
   console.log(`Leituras simuladas enviadas às ${new Date().toLocaleTimeString('pt-BR')}`);
 }
