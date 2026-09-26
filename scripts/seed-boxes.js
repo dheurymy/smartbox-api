@@ -10,6 +10,9 @@ const boxesExemplo = [
   { boxId: 'box-06', widthM: 14, lengthM: 22, heightM: 6.5, sensorRows: 3, sensorCols: 3, productId: 'prod-kcl' },
   { boxId: 'box-07', widthM: 10, lengthM: 18, heightM: 5, sensorRows: 3, sensorCols: 2, productId: 'prod-map' },
   { boxId: 'box-08', widthM: 8, lengthM: 15, heightM: 4.5, sensorRows: 2, sensorCols: 2, productId: 'prod-ureia' },
+  // Vazio e sem produto de propósito — pra testar o fluxo de atribuir/trocar
+  // produto (ver BoxesView.tsx) sem precisar esvaziar nenhum box primeiro.
+  { boxId: 'box-09', widthM: 9, lengthM: 14, heightM: 4, sensorRows: 2, sensorCols: 2, productId: null },
 ];
 
 const produtosExemplo = [
