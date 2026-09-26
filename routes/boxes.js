@@ -64,11 +64,12 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PATCH /api/boxes/:boxId/produto - troca o produto atual do boxe (ex: reabastecimento)
+// PATCH /api/boxes/:boxId/produto - troca (ou remove, com productId:null) o
+// produto atual do boxe (ex: reabastecimento, ou trocar o que está armazenado)
 router.patch('/:boxId/produto', async (req, res) => {
   try {
     const { productId } = req.body;
-    if (!productId) return res.status(400).json({ erro: 'productId é obrigatório' });
+    if (productId === undefined) return res.status(400).json({ erro: 'productId é obrigatório (use null pra desvincular)' });
     const db = getDB();
     const resultado = await db
       .collection('boxes')
