@@ -1,10 +1,8 @@
 import { Router } from 'express';
 import { getDB } from '../db/connection.js';
+import { calcularVolume } from '../utils/volume.js';
 
 const router = Router();
-
-// Valor que o firmware usa quando o sensor não encontra alvo (ver firmware/)
-const SENTINELA_INVALIDO = 9999;
 
 /**
  * Duas matrizes têm a mesma forma (mesmo número de linhas e colunas)?
@@ -15,47 +13,6 @@ function mesmoFormato(a, b) {
   if (!Array.isArray(a) || !Array.isArray(b)) return false;
   if (a.length !== b.length) return false;
   return a.every((linha, i) => Array.isArray(linha) && linha.length === b[i]?.length);
-}
-
-/**
- * Calcula o volume ocupado a partir da matriz de distâncias.
- *
- * A altura do material em cada célula NÃO é mais "heightM - distância"
- * (que assume o sensor montado exatamente à distância nominal do fundo do
- * box — na prática quase nunca é o caso, por tolerância de montagem).
- * Em vez disso, usa `baseline` — a matriz da PRIMEIRA leitura já recebida
- * pra esse box — como referência de "vazio" (zero): altura = baseline -
- * distância atual. Isso calibra automaticamente qualquer offset de
- * instalação do sensor real (ver POST / abaixo, que captura o baseline).
- *
- * Célula é ignorada (não entra na média) se a leitura atual OU o baseline
- * daquela célula for inválido (sentinela) — ex: sensor que falhou na hora
- * da calibração fica de fora do cálculo até o box ser recalibrado.
- */
-function calcularVolume(box, matriz, baseline) {
-  const alturasValidasMm = [];
-  for (let r = 0; r < matriz.length; r++) {
-    for (let c = 0; c < matriz[r].length; c++) {
-      const distanciaMm = matriz[r][c];
-      const zeroMm = baseline?.[r]?.[c];
-      if (distanciaMm === SENTINELA_INVALIDO) continue;
-      if (zeroMm === undefined || zeroMm === SENTINELA_INVALIDO) continue;
-      alturasValidasMm.push(zeroMm - distanciaMm);
-    }
-  }
-
-  if (alturasValidasMm.length === 0) return { volumeM3: 0, volumePercent: 0 };
-
-  const alturaMediaMm =
-    alturasValidasMm.reduce((soma, h) => soma + h, 0) / alturasValidasMm.length;
-
-  // Limitada entre 0 (vazio) e heightM (não deixa "estourar" acima da
-  // capacidade do box por ruído do sensor ou calibração imperfeita).
-  const alturaMediaM = Math.min(box.heightM, Math.max(0, alturaMediaMm / 1000));
-  const volumeM3 = alturaMediaM * box.widthM * box.lengthM;
-  const volumePercent = box.heightM > 0 ? (alturaMediaM / box.heightM) * 100 : 0;
-
-  return { volumeM3, volumePercent };
 }
 
 // POST /api/readings - recebe uma leitura nova (chamado pelo serviço de ingestão)
