@@ -4,7 +4,7 @@ dotenv.config();
 const API_URL = process.env.API_URL || 'http://localhost:3000';
 const INTERVALO_MS = 2_000;
 
-const BOX_IDS = Array.from({ length: 10 }, (_, i) => `box-${String(i + 1).padStart(2, '0')}`);
+const BOX_IDS = Array.from({ length: 8 }, (_, i) => `box-${String(i + 1).padStart(2, '0')}`);
 
 async function buscarBox(boxId) {
   const resp = await fetch(`${API_URL}/api/boxes/${boxId}`);

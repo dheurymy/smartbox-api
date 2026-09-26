@@ -37,9 +37,9 @@ A API roda como função serverless na Vercel, então não há conexão persiste
 busca `GET /api/boxes` e `GET /api/readings/:boxId/latest` de cada boxe a cada
 2 segundos.
 
-## Gerando os 10 boxes simulados
+## Gerando os 8 boxes simulados
 
-Depois do `npm run init-db`, crie os outros 9 boxes via `POST /api/boxes`
+Depois do `npm run init-db`, crie os outros 7 boxes via `POST /api/boxes`
 (mesmas dimensões do box-01 ou dimensões diferentes, como preferir) e, no
 serviço de ingestão, faça um `POST /api/readings` para cada `boxId` reaproveitando
 a mesma `matriz` lida do boxe real, com `source: "simulated"`.

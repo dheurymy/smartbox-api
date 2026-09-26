@@ -10,8 +10,6 @@ const boxesExemplo = [
   { boxId: 'box-06', widthM: 14, lengthM: 22, heightM: 6.5, sensorRows: 3, sensorCols: 3, productId: 'prod-kcl' },
   { boxId: 'box-07', widthM: 10, lengthM: 18, heightM: 5, sensorRows: 3, sensorCols: 2, productId: 'prod-map' },
   { boxId: 'box-08', widthM: 8, lengthM: 15, heightM: 4.5, sensorRows: 2, sensorCols: 2, productId: 'prod-ureia' },
-  { boxId: 'box-09', widthM: 14, lengthM: 22, heightM: 6.5, sensorRows: 3, sensorCols: 3, productId: 'prod-kcl' },
-  { boxId: 'box-10', widthM: 12, lengthM: 20, heightM: 6, sensorRows: 3, sensorCols: 2, productId: 'prod-map' },
 ];
 
 const produtosExemplo = [
