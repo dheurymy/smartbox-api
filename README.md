@@ -35,7 +35,7 @@ npm start               # inicia a API em http://localhost:3000
 A API roda como função serverless na Vercel, então não há conexão persistente
 (WebSocket) disponível. O dashboard React atualiza os dados por **polling**:
 busca `GET /api/boxes` e `GET /api/readings/:boxId/latest` de cada boxe a cada
-10 segundos.
+2 segundos.
 
 ## Gerando os 10 boxes simulados
 
