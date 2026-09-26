@@ -126,6 +126,53 @@ router.delete('/:boxId/baseline', async (req, res) => {
   }
 });
 
+// PATCH /api/boxes/:boxId/meta-descarga - define uma meta de descarga: quanto
+// (em kg) se espera retirar do boxe a partir de agora. Guarda a massa da
+// ÚLTIMA leitura como "massa inicial" de referência — o quanto já foi
+// descarregado é sempre `dischargeStartMassKg - massa atual`, calculado no
+// frontend a cada poll (ver buildAlerts em utils.ts), não persistido aqui.
+// Cancelar/redefinir a meta é só chamar de novo (ou usar o DELETE abaixo).
+router.patch('/:boxId/meta-descarga', async (req, res) => {
+  try {
+    const { targetKg } = req.body;
+    if (typeof targetKg !== 'number' || targetKg <= 0) {
+      return res.status(400).json({ erro: 'targetKg é obrigatório e deve ser um número maior que zero' });
+    }
+    const db = getDB();
+
+    const ultimaLeitura = await db
+      .collection('readings')
+      .find({ boxId: req.params.boxId })
+      .sort({ timestamp: -1 })
+      .limit(1)
+      .toArray();
+    const massaAtualKg = ultimaLeitura[0]?.massTon ? ultimaLeitura[0].massTon * 1000 : 0;
+
+    const resultado = await db.collection('boxes').updateOne(
+      { boxId: req.params.boxId },
+      { $set: { dischargeTargetKg: targetKg, dischargeStartMassKg: massaAtualKg } }
+    );
+    if (resultado.matchedCount === 0) return res.status(404).json({ erro: 'Boxe não encontrado' });
+    res.json({ mensagem: 'Meta de descarga definida', dischargeStartMassKg: massaAtualKg });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// DELETE /api/boxes/:boxId/meta-descarga - cancela a meta de descarga ativa (se houver)
+router.delete('/:boxId/meta-descarga', async (req, res) => {
+  try {
+    const db = getDB();
+    const resultado = await db
+      .collection('boxes')
+      .updateOne({ boxId: req.params.boxId }, { $unset: { dischargeTargetKg: '', dischargeStartMassKg: '' } });
+    if (resultado.matchedCount === 0) return res.status(404).json({ erro: 'Boxe não encontrado' });
+    res.json({ mensagem: 'Meta de descarga cancelada' });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
 // DELETE /api/boxes/:boxId - remove um boxe (não apaga o histórico de leituras já gravado)
 router.delete('/:boxId', async (req, res) => {
   try {
