@@ -173,6 +173,53 @@ router.delete('/:boxId/meta-descarga', async (req, res) => {
   }
 });
 
+// PATCH /api/boxes/:boxId/meta-abastecimento - define uma meta de
+// abastecimento: quanto (em kg) se espera CARREGAR no boxe a partir de agora
+// (o espelho da meta de descarga acima). Guarda a massa da ÚLTIMA leitura
+// como "massa inicial" de referência — o quanto já foi abastecido é sempre
+// `massa atual - supplyStartMassKg`, calculado no frontend a cada poll (ver
+// buildAlerts em utils.ts), não persistido aqui.
+router.patch('/:boxId/meta-abastecimento', async (req, res) => {
+  try {
+    const { targetKg } = req.body;
+    if (typeof targetKg !== 'number' || targetKg <= 0) {
+      return res.status(400).json({ erro: 'targetKg é obrigatório e deve ser um número maior que zero' });
+    }
+    const db = getDB();
+
+    const ultimaLeitura = await db
+      .collection('readings')
+      .find({ boxId: req.params.boxId })
+      .sort({ timestamp: -1 })
+      .limit(1)
+      .toArray();
+    const massaAtualKg = ultimaLeitura[0]?.massTon ? ultimaLeitura[0].massTon * 1000 : 0;
+
+    const resultado = await db.collection('boxes').updateOne(
+      { boxId: req.params.boxId },
+      { $set: { supplyTargetKg: targetKg, supplyStartMassKg: massaAtualKg } }
+    );
+    if (resultado.matchedCount === 0) return res.status(404).json({ erro: 'Boxe não encontrado' });
+    res.json({ mensagem: 'Meta de abastecimento definida', supplyStartMassKg: massaAtualKg });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// DELETE /api/boxes/:boxId/meta-abastecimento - cancela a meta de abastecimento ativa (se houver)
+router.delete('/:boxId/meta-abastecimento', async (req, res) => {
+  try {
+    const db = getDB();
+    const resultado = await db
+      .collection('boxes')
+      .updateOne({ boxId: req.params.boxId }, { $unset: { supplyTargetKg: '', supplyStartMassKg: '' } });
+    if (resultado.matchedCount === 0) return res.status(404).json({ erro: 'Boxe não encontrado' });
+    res.json({ mensagem: 'Meta de abastecimento cancelada' });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
 // DELETE /api/boxes/:boxId - remove um boxe (não apaga o histórico de leituras já gravado)
 router.delete('/:boxId', async (req, res) => {
   try {
